@@ -9,10 +9,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -30,13 +37,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.personalexpensetracker.domain.model.Transaction
 import com.example.personalexpensetracker.domain.model.TransactionFilter
+import com.example.personalexpensetracker.ext.formatCurrencyVietnam
 import com.example.personalexpensetracker.presentation.navigation.Screen
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    viewModel: HomeViewModel = koinViewModel()
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
     Log.d("HomeScreen", "Start screen")
 
@@ -60,21 +68,49 @@ fun HomeScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            //Tong tien
+            //Total
             Log.d("HomeScreen", "Start calculate total")
-            Text("Tổng thu: $totalIncome", style = MaterialTheme.typography.titleMedium)
-            Text("Tổng chi: $totalExpense", style = MaterialTheme.typography.titleMedium)
 
-            Spacer(Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Total amount: ${totalIncome.formatCurrencyVietnam()}",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        "Total expense: ${totalExpense.formatCurrencyVietnam()}",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                Button(
+                    onClick = {
+                        navController.navigate(Screen.Statistics.route)
+                    },
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "View Statistics",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Detail")
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
 
             FilterSelector(
                 selectedFilter = filter,
                 onFilterChange = viewModel::onFilterSelected
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
 
-            //Danh sach giao dich
+            //Transaction list
             LazyColumn {
                 items(transactions) { transaction ->
                     TransactionItem(transaction) {
@@ -91,6 +127,7 @@ fun HomeScreen(
 @Composable
 fun TransactionItem(transaction: Transaction, onItemClick: () -> Unit) {
     Log.d("HomeScreen", "Start transaction item")
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -104,14 +141,15 @@ fun TransactionItem(transaction: Transaction, onItemClick: () -> Unit) {
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("So tien: ${transaction.amount}")
-            Text("Loai: ${transaction.type}")
-            Text("Danh muc: ${transaction.category}")
+            Text("Amount: ${transaction.amount.formatCurrencyVietnam()}")
+            Text("Type: ${transaction.type}")
+            Text("Category: ${transaction.category}")
             if (transaction.description.isNotBlank()) {
-                Text("Mo ta: ${transaction.description}")
+                Text("Description: ${transaction.description}")
             }
         }
     }
+
     Log.d("HomeScreen", "End transaction item")
 }
 
@@ -121,26 +159,40 @@ fun FilterSelector(
     onFilterChange: (TransactionFilter) -> Unit
 ) {
     Log.d("HomeScreen", "Start filter")
+
     val filters = listOf(
-        TransactionFilter.ALL to "Tất cả",
-        TransactionFilter.INCOME to "Chỉ thu",
-        TransactionFilter.EXPENSE to "Chỉ chi"
+        TransactionFilter.ALL to "All",
+        TransactionFilter.INCOME to "Income",
+        TransactionFilter.EXPENSE to "Expense"
+    )
+
+    val icons = listOf(
+        Icons.AutoMirrored.Filled.List,
+        Icons.Filled.KeyboardArrowUp,
+        Icons.Filled.KeyboardArrowDown
     )
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        filters.forEach { (filter, label) ->
+        filters.forEachIndexed { index, (filter, label) ->
             FilterChip(
                 selected = selectedFilter == filter,
                 onClick = { onFilterChange(filter) },
-                label = { Text(label) }
+                label = { Text(label) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = icons[index],
+                        contentDescription = null
+                    )
+                }
             )
         }
     }
+
     Log.d("HomeScreen", "End filter")
 }

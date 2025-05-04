@@ -11,11 +11,11 @@ import kotlinx.coroutines.flow.map
 class TransactionRepositoryImpl(private val dao: TransactionDao) : TransactionRepository {
     override fun getAll(): Flow<List<Transaction>> = dao.getAll().map { list -> list.map { it.toDomain() } }
 
-    override suspend fun insert(transaction: Transaction) = dao.insert(transaction.toEntity())
-
     override suspend fun delete(transaction: Transaction) = dao.delete(transaction.toEntity())
 
-    override suspend fun getById(id: Int): Transaction? {
-        return dao.getById(id)?.toDomain()
-    }
+    override suspend fun getById(id: Int): Transaction? = dao.getById(id)?.toDomain()
+
+    override suspend fun addTransaction(transaction: Transaction) = dao.insert(transaction.toEntity())
+
+    override suspend fun updateTransaction(transaction: Transaction) = dao.updateTransaction(transaction.toEntity())
 }

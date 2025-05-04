@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.personalexpensetracker.data.local.entity.TransactionEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -21,4 +22,7 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions WHERE id = :id")
     suspend fun getById(id: Int): TransactionEntity?
+
+    @Update
+    suspend fun updateTransaction(transaction: TransactionEntity)
 }
